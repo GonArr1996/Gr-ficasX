@@ -1,0 +1,156 @@
+---
+title: "Precio Carbono y Clima en aire y mar"
+author: "Gonzalo A."
+date: '2022-06-16'
+output: beamer_presentation
+---
+
+```{r include=FALSE}
+rm(list=ls()) # borrar todo en la memoria
+options(digits = 10) # decimales
+options(scipen = 100) # para evitar notacion scientifica qUE afectaba la leyenda de la grafica
+knitr::opts_chunk$set(echo = FALSE) # Para qUE predeterminadamente no salga el output de los codigos.
+```
+
+
+```{r include=FALSE}
+#######################
+####  Directorio  #####
+#######################
+#### (Cambiar solo despUEs del "~/ a donde este guardado la carpeta) 
+knitr::opts_knit$set(root.dir = "~/Desktop/Precios del carbono")  # Directorio
+
+######################
+
+knitr::opts_chunk$set(out.width = '100%', dpi=300) # Resolucion y tamanio de figuras
+knitr::opts_chunk$set(fig.env="figure") # Latex figure environment
+
+# tinytex::install_tinytex() # Por si no está instalado o acualizado correr esta linea.
+```
+
+
+```{r include=FALSE}
+# Para instalar paqUEtes qUE no esten descargados qUE sean necesarios
+lista.de.paqUEte1 <- c("tidyverse","stargazer", "lubridate", "patchwork")
+nUEvo.paqUEte1 <- lista.de.paqUEte1[!(lista.de.paqUEte1 %in% 
+                                             installed.packages()[,"Package"])]
+if(length(nUEvo.paqUEte1)) install.packages(nUEvo.paqUEte1, dependencies = TRUE, force = TRUE)
+
+
+
+
+library(dplyr)
+library(ggplot2)
+
+
+
+
+P_c <- read.csv("DatosPIBPrecio.csv")
+nrow(P_c)
+P_c <- P_c[1:169,]
+head(P_c)
+tail(P_c)
+summary(P_c)
+str(P_c)
+
+
+
+
+P_c$Fecha = as.Date(P_c$Fecha, format = "%Y-%m-%d") # convert date, to date format
+P_c$Anio <- as.factor(P_c$Anio)
+P_c$California_Quebec <- gsub("\\$","", P_c$California_Quebec)
+P_c$California_Quebec <- as.numeric(P_c$California_Quebec)
+
+str(P_c)
+typeof(P_c$Fecha)
+typeof(P_c$Anio)
+
+
+
+
+str(P_c)
+
+
+P_c$Anio = as.Date(P_c$Anio, format = "%Y")
+
+P_c2 <- P_c[complete.cases(P_c$California_Quebec),]
+P_c3 <- P_c[complete.cases(P_c$RGGI),]
+
+P_MC <- ggplot(P_c) + geom_line(aes(x = Fecha, y = UE, color = "UE"), na.rm =T) + geom_line(aes(x = Fecha, y = Corea, color = "Corea"), na.rm = T) + geom_line(data = P_c2, aes_(x = P_c2$Fecha, y = P_c2$California_Quebec, group = 1, color = "CaliforniaQuebec"), na.rm = T) + geom_line(data = P_c3, aes_(x = P_c3$Fecha, y = P_c3$RGGI, group = 1, color = "RGGI"), na.rm = T) + geom_line(data = P_c, aes(x = Fecha, y = NuevaZelanda, color = "NuevaZelanda"), na.rm = T)
+       
+P_MC <- P_MC + scale_color_manual(name = "Jurisdicción", values =
+                                    c(UE = "Blue",
+                                      Corea = "Orange",
+                                      CaliforniaQuebec = "Red",
+                                      RGGI = "Brown",
+                                      NuevaZelanda = "DarkGreen"))
+
+P_MC <- P_MC + theme_minimal()
+
+P_MC <- P_MC +
+       xlab("Año") + # nombre de eje x
+       ylab("Precio (USD/tCO2e)") + # nombre de eje y
+       labs(caption = "Elaborado por Gonzalo Arrangoiz con datos de CARB, rggi.com e icap") +
+       ggtitle("Precios del carbono en el mundo") + # titulo de grafica
+       theme(axis.title.x = element_text(color="Black", size=10, face = "bold"), # tamanio y color de titulo del eje x
+             axis.title.y = element_text(color = " Black", size=10, face = "bold"), # tamanio y color del titulo del eje y
+             
+             axis.text.x = element_text(size=8, face = "bold"), # tamanio y color de los numeros del eje x
+             axis.text.y = element_text(size=8),# tamanio y color de los numeros del eje y
+             legend.key.height = unit(0.5, "cm"),
+             legend.title = element_text(size=8), # tamanio del titulo del indice
+             legend.text = element_text(size=6), # tamanio del texto del indice
+             legend.position = "right",
+             legend.justification = c(1,1), # posicion de inidice
+             
+             plot.title = element_text(color="DarkBlUE", # color del titulo de grafica
+                                       size=15, # tamanio del titulo de grafica
+                                       family="Courier"))  # tipo de letra del titulo de grafica 
+
+```
+
+```{r echo=FALSE}
+P_MC
+```
+
+
+*** 
+
+
+```{r include=FALSE}
+LOM <- read.csv("LOM.csv", skip = 1)
+
+GLOM <- ggplot(LOM, aes(Year, Land_Annual)) + geom_point() + geom_line(aes(color = "Tierra")) + geom_point(aes(Year, Ocean_Annual)) + geom_line(aes(Year, Ocean_Annual, color = "Mar"))
+
+GLOM <- GLOM + theme_minimal() +
+              xlab("Año") + # nombre de eje x
+       ylab("Cambio temperatura") + # nombre de eje y
+       labs(caption = "Elaborado por Gonzalo Arrangoiz con datos de la NASA") +
+       ggtitle("Cambio en temperatura en tierra y mar") + # titulo de grafica
+       theme(axis.title.x = element_text(color="Black", size=10, face = "bold"), # tamanio y color de titulo del eje x
+             axis.title.y = element_text(color = " Black", size=10, face = "bold"), # tamanio y color del titulo del eje y
+             
+             axis.text.x = element_text(size=8, face = "bold"), # tamanio y color de los numeros del eje x
+             axis.text.y = element_text(size=8),# tamanio y color de los numeros del eje y
+             legend.key.height = unit(0.5, "cm"),
+             legend.title = element_text(size=8), # tamanio del titulo del indice
+             legend.text = element_text(size=6), # tamanio del texto del indice
+             legend.position = "right",
+             legend.justification = c(1,1), # posicion de inidice
+             
+             plot.title = element_text(color="DarkBlUE", # color del titulo de grafica
+                                       size=15, # tamanio del titulo de grafica
+                                       family="Courier"))  # tipo de letra del titulo de grafica 
+
+GLOM <- GLOM + scale_color_manual(name = "Superficie", values =
+                                    c(Tierra = "Brown",
+                                      Mar = "Blue"))
+```
+
+
+```{r echo=FALSE}
+GLOM
+```
+
+
+
